@@ -78,7 +78,8 @@ namespace TitleBoutClone.Core
             }
             else if (action is PunchMissed)
             {
-                if (RN <= (leading.OpenToCounterpunch + reacting.Counterpunching))
+                int newRandom = _boxRandom.DieOf(80);
+                if ( newRandom <= (leading.OpenToCounterpunch + reacting.Counterpunching))
                 {
                     (var type, var value) = GetPunchTypeAndValue(_boxRandom.DieOf(80), reacting.HittingValuesTable);
                     roundState.TimeUnitsLeft--;
@@ -92,7 +93,7 @@ namespace TitleBoutClone.Core
             }
             else if (action is Clinching)
             {
-                System.Console.WriteLine($"{leading.Surname} initiates a clinch.");
+                System.Console.WriteLine($"{leading.Surname} holds on.");
             }
             else if(action is Movement)
             {
@@ -125,7 +126,7 @@ namespace TitleBoutClone.Core
 
         private IAction GetFighterAction(Fighter leading, Fighter reacting, int randomNumber)
         {
-            if (leading.PunchLandedRange.HasWithinIt(randomNumber + reacting.Defence))
+            if (randomNumber <= (leading.PunchLandedRange.End + reacting.Defence))
             {
                 (PunchType punchType, int value) = GetPunchTypeAndValue(_boxRandom.DieOf(80), leading.HittingValuesTable);
                 return new PunchLanded(punchType, value);
