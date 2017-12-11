@@ -72,32 +72,18 @@ namespace TitleBoutClone.Core
             if(action is PunchLanded)
             {
                 var punchLanded = (PunchLanded)action;
-                if (IsRedCornerFighter(leading))
-                {
-                    roundState.PointsScoredRed += punchLanded.Value;
-                }
-                else
-                {
-                    roundState.PointsScoredBlue += punchLanded.Value;
-                }
-                System.Console.WriteLine($"{leading.Surname} lands a {punchLanded.Type} worth {punchLanded.Value} to {reacting.Surname}.");
+                RegisterPunch(leading, reacting, punchLanded, roundState);
+                System.Console.WriteLine($"{leading.Surname} lands a {punchLanded.Value}-point {punchLanded.Type} to {reacting.Surname}.");
                 
             }
             else if (action is PunchMissed)
             {
                 if (RN <= (leading.OpenToCounterpunch + reacting.Counterpunching))
                 {
-                    (var punchType, var punchValue) = GetPunchTypeAndValue(_boxRandom.DieOf(80), reacting.HittingValuesTable);
+                    (var type, var value) = GetPunchTypeAndValue(_boxRandom.DieOf(80), reacting.HittingValuesTable);
                     roundState.TimeUnitsLeft--;
-                    if (IsRedCornerFighter(reacting))
-                    {
-                        roundState.PointsScoredRed += punchValue;
-                    }
-                    else
-                    {
-                        roundState.PointsScoredBlue += punchValue;
-                    }
-                    System.Console.WriteLine($"{reacting.Surname} lands a beautiful {punchValue}-point {punchType} counterpunch.");
+                    RegisterPunch(reacting, leading, new PunchLanded(type, value),roundState);
+                    System.Console.WriteLine($"{reacting.Surname} lands a beautiful {value}-point {type} counterpunch.");
                 }
                 else
                 {
@@ -115,23 +101,36 @@ namespace TitleBoutClone.Core
 
         }
 
+        private void RegisterPunch(Fighter puncher, Fighter punchee, PunchLanded punch, RoundState roundState)
+        {
+            if (IsRedCornerFighter(puncher))
+            {
+                roundState.PointsScoredRed += punch.Value;
+            }
+            else
+            {
+                roundState.PointsScoredBlue += punch.Value;
+            }
+        }
 
         private Fighter GetOtherFighter(Fighter fighter)
         {
             return (fighter.Equals(_redCorner)) ? _blueCorner : _redCorner;
         }
+
         private bool IsRedCornerFighter(Fighter fighter)
         {
             return fighter.Equals(_redCorner);
         }
+
         private IAction GetFighterAction(Fighter leading, Fighter reacting, int randomNumber)
         {
-            if (leading.PunchLandedRange.HasWithinIt(randomNumber))
+            if (leading.PunchLandedRange.HasWithinIt(randomNumber + reacting.Defence))
             {
                 (PunchType punchType, int value) = GetPunchTypeAndValue(_boxRandom.DieOf(80), leading.HittingValuesTable);
                 return new PunchLanded(punchType, value);
             }
-            else if (leading.PunchMissedRange.HasWithinIt(randomNumber))
+            else if (leading.PunchMissedRange.HasWithinIt(randomNumber) || randomNumber < leading.PunchMissedRange.Start)
             {
                 return new PunchMissed();
             }
