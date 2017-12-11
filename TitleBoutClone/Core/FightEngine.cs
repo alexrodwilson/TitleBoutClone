@@ -77,15 +77,15 @@ namespace TitleBoutClone.Core
             }
             else if (action is PunchMissed)
             {
-                
+                System.Console.WriteLine($"{leading.Surname} misses a punch.");
             }
             else if (action is Clinching)
             {
-
+                System.Console.WriteLine($"{leading.Surname} initiates a clinch.");
             }
             else if(action is Movement)
             {
-                
+                System.Console.WriteLine($"{leading.Surname} moves around the ring.");
             }
 
         }
