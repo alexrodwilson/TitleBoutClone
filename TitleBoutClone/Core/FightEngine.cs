@@ -24,10 +24,12 @@ namespace TitleBoutClone.Core
         public void SimulateRound()
         {
             RoundState roundState = new RoundState();
-            (int redConvertedControl, int blueConvertedControl) = ConvertControl(_redCorner.Control, _blueCorner.Control);
-            _redCorner.Control = redConvertedControl;
-            _blueCorner.Control = blueConvertedControl;
+            (int redConvertedControl, int blueConvertedControl) = ConvertControl(_redCorner, _blueCorner);
+            _redCorner.CurrentControl = redConvertedControl;
+            _blueCorner.CurrentControl = blueConvertedControl;
             (Fighter leading, Fighter reacting) = DetermineAggressor(_redCorner, _blueCorner);
+            System.Console.WriteLine($"{_redCorner.Surname} is set out as a {_redCorner.CurrentStyle} this round, while {_blueCorner.Surname} is being a {_blueCorner.CurrentStyle}.");
+            System.Console.WriteLine($"{_redCorner.Surname} has a CF of {_redCorner.CurrentControl} and {_blueCorner.Surname} one of {_blueCorner.CurrentControl}.");
             while(roundState.TimeUnitsLeft > 0 && ! isStopped)
             {
                 SimulateAction(leading, reacting, roundState);
@@ -53,7 +55,11 @@ namespace TitleBoutClone.Core
         private (Fighter leading, Fighter reacting) DetermineControl(Fighter leading, Fighter reacting, RoundState roundState)
         {
             roundState.TimeUnitsLeft--;
-            if (leading.Control > _boxRandom.DieOf(20))
+            if (leading.CurrentControl == null)
+            {
+                throw new ArgumentException("The value of the CurrentControl of leading has not been set correctly", nameof(leading));
+            }
+            if (leading.CurrentControl > _boxRandom.DieOf(20))
             {
                 return (leading, reacting);
             }
@@ -168,8 +174,13 @@ namespace TitleBoutClone.Core
             throw new ArgumentException("Exception caused by non-exhaustive ranges in HittingValuesTable", nameof(hittingValuesTable));
         }
 
-        private static (int FighterAControl, int FighterBControl) ConvertControl(int fighterAControl, int fighterBControl)
+        private static (int FighterAControl, int FighterBControl) ConvertControl(Fighter fighterA, Fighter fighterB)
         {
+            int fighterAControl = (fighterB.CurrentStyle == Style.Slugger)? 
+                fighterA.ControlAgainstS : fighterA.ControlAgainstB;
+            int fighterBControl = (fighterA.CurrentStyle == Style.Slugger) ?
+                fighterB.ControlAgainstS : fighterB.ControlAgainstB;
+
             int difference = Math.Abs(fighterAControl - fighterBControl);
             if (difference > 2)
             {

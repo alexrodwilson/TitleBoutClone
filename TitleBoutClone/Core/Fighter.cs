@@ -7,14 +7,16 @@ using TitleBoutClone.Utils;
 
 namespace TitleBoutClone.Core
 {
-    public enum Style { Boxer, Slugger, Either}
+    
     public class Fighter
     {
         public int Id { get; }
         public string Surname { get; }
         public Style CurrentStyle { get; set; }
         public Style NaturalStyle { get; set; }
-        public int Control{get;set;}
+        public int? CurrentControl{get;set;}
+        public int ControlAgainstB { get; }
+        public int ControlAgainstS { get; }
         public int Aggression { get; set; }
         public int Finishing { get; set; }
         public int Endurance { get; set; }
@@ -27,14 +29,15 @@ namespace TitleBoutClone.Core
         public int Counterpunching { get; }
         public int OpenToCounterpunch { get; }
 
-        public Fighter(int id, string surname, int control, int aggression, 
-            int endurance, int defence, int counterpunching, int openToCounterpunch, Range punchLandedRange,
+        public Fighter(int id, string surname, int controlAgainstS, int controlAgainstB, int aggression, 
+            int endurance, int defence, int counterpunching, int openToCounterpunch, Style currentStyle, Range punchLandedRange,
             Range punchMissedRange, Range clinchingRange, Range movementRange, 
             IDictionary<PunchType, (Range, Range)> hittingValuesTable)
         {
             Id = id;
             Surname = surname;
-            Control = control;
+            ControlAgainstB = controlAgainstB;
+            ControlAgainstS = controlAgainstS;
             Aggression = aggression;
             Endurance = endurance;
             Defence = defence;
@@ -45,6 +48,7 @@ namespace TitleBoutClone.Core
             HittingValuesTable = hittingValuesTable;
             OpenToCounterpunch = openToCounterpunch;
             Counterpunching = counterpunching;
+            CurrentStyle = currentStyle;
         }
 
         public override bool Equals(Object otherFighter)
