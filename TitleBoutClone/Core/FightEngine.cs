@@ -53,14 +53,22 @@ namespace TitleBoutClone.Core
         private (Fighter leading, Fighter reacting) DetermineControl(Fighter leading, Fighter reacting, RoundState roundState)
         {
             roundState.TimeUnitsLeft--;
-            return (leading.Control > _boxRandom.DieOf(20)) ? (leading, reacting) : (reacting, leading);
+            if (leading.Control > _boxRandom.DieOf(20))
+            {
+                return (leading, reacting);
+            }
+            else
+            {
+                System.Console.WriteLine($"{reacting.Surname} takes control.");
+                return (reacting, leading);
+            }
         }
 
         private void SimulateAction(Fighter leading, Fighter reacting, RoundState roundState)
         {
             roundState.TimeUnitsLeft--;
             int RN = _boxRandom.DieOf(80);
-            IAction action = GetFighterAction(leading, reacting);
+            IAction action = GetFighterAction(leading, reacting, RN);
             if(action is PunchLanded)
             {
                 var punchLanded = (PunchLanded)action;
@@ -77,7 +85,24 @@ namespace TitleBoutClone.Core
             }
             else if (action is PunchMissed)
             {
-                System.Console.WriteLine($"{leading.Surname} misses a punch.");
+                if (RN <= (leading.OpenToCounterpunch + reacting.Counterpunching))
+                {
+                    (var punchType, var punchValue) = GetPunchTypeAndValue(_boxRandom.DieOf(80), reacting.HittingValuesTable);
+                    roundState.TimeUnitsLeft--;
+                    if (IsRedCornerFighter(reacting))
+                    {
+                        roundState.PointsScoredRed += punchValue;
+                    }
+                    else
+                    {
+                        roundState.PointsScoredBlue += punchValue;
+                    }
+                    System.Console.WriteLine($"{reacting.Surname} lands a beautiful {punchValue}-point {punchType} counterpunch.");
+                }
+                else
+                {
+                    System.Console.WriteLine($"{leading.Surname} misses a punch.");
+                }
             }
             else if (action is Clinching)
             {
@@ -90,10 +115,6 @@ namespace TitleBoutClone.Core
 
         }
 
-        private void SimulatePunchLanding(Fighter leading, Fighter reacting)
-        {
-            
-        }
 
         private Fighter GetOtherFighter(Fighter fighter)
         {
@@ -103,23 +124,22 @@ namespace TitleBoutClone.Core
         {
             return fighter.Equals(_redCorner);
         }
-        private IAction GetFighterAction(Fighter leading, Fighter reacting)
+        private IAction GetFighterAction(Fighter leading, Fighter reacting, int randomNumber)
         {
-            int rn = _boxRandom.DieOf(80);
-            if (leading.PunchLandedRange.HasWithinIt(rn))
+            if (leading.PunchLandedRange.HasWithinIt(randomNumber))
             {
                 (PunchType punchType, int value) = GetPunchTypeAndValue(_boxRandom.DieOf(80), leading.HittingValuesTable);
                 return new PunchLanded(punchType, value);
             }
-            else if (leading.PunchMissedRange.HasWithinIt(rn))
+            else if (leading.PunchMissedRange.HasWithinIt(randomNumber))
             {
                 return new PunchMissed();
             }
-            else if (leading.ClinchingRange.HasWithinIt(rn))
+            else if (leading.ClinchingRange.HasWithinIt(randomNumber))
             {
                 return new Clinching();
             }
-            else if (leading.MovementRange.HasWithinIt(rn))
+            else if (leading.MovementRange.HasWithinIt(randomNumber))
             {
                 return new Movement();
             }

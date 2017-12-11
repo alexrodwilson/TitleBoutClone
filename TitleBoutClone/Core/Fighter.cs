@@ -24,9 +24,11 @@ namespace TitleBoutClone.Core
         public Range ClinchingRange { get; }
         public Range MovementRange { get; }
         public IDictionary<PunchType, (Range, Range)>  HittingValuesTable { get;}
+        public int Counterpunching { get; }
+        public int OpenToCounterpunch { get; }
 
         public Fighter(int id, string surname, int control, int aggression, 
-            int endurance, int defence, Range punchLandedRange,
+            int endurance, int defence, int counterpunching, int openToCounterpunch, Range punchLandedRange,
             Range punchMissedRange, Range clinchingRange, Range movementRange, 
             IDictionary<PunchType, (Range, Range)> hittingValuesTable)
         {
@@ -41,6 +43,8 @@ namespace TitleBoutClone.Core
             ClinchingRange = clinchingRange;
             MovementRange = movementRange;
             HittingValuesTable = hittingValuesTable;
+            OpenToCounterpunch = openToCounterpunch;
+            Counterpunching = counterpunching;
         }
 
         public override bool Equals(Object otherFighter)
