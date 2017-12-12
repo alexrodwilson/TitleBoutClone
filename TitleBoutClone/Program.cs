@@ -26,13 +26,13 @@ namespace TitleBoutClone
                 {PunchType.Uppercut, (new Range(66,68), new Range(69, 80))}
             };
             Fighter redCorner = new Fighter(id: 1, surname: "Ali", controlAgainstS: 11, controlAgainstB: 12,
-                aggression: 6, endurance: 10, defence: 0, counterpunching: 6, openToCounterpunch: 42,
+                aggression: 6, endurance: 10, knockdownChance: 5, defence: 0, chin: 2, recovery: 3, counterpunching: 6, openToCounterpunch: 42,
                 punchLandedRange: new Range(1, 40), currentStyle: Style.Boxer,
                 punchMissedRange: new Range(41, 50), clinchingRange: new Range(51, 70),
                 movementRange: new Range(71, 80), hittingValuesTable: hitTable1);
 
             Fighter blueCorner = new Fighter(id: 2, surname: "Foreman", controlAgainstB: 11, controlAgainstS: 12,
-                aggression: 8, endurance: 10, defence: 2, counterpunching: 4, openToCounterpunch: 42, punchLandedRange: new Range(1, 37),
+                aggression: 8, endurance: 10, defence: 2, knockdownChance: 8, chin: 1, recovery: 5, counterpunching: 4, openToCounterpunch: 42, punchLandedRange: new Range(1, 37),
                 punchMissedRange: new Range(38, 50), clinchingRange: new Range(51, 70), currentStyle: Style.Slugger,
                 movementRange: new Range(71, 80), hittingValuesTable: hitTable1);
 

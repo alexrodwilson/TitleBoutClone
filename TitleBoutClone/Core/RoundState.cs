@@ -11,10 +11,12 @@ namespace TitleBoutClone.Core
         public int PointsScoredRed { get; set; }
         public int PointsScoredBlue { get; set; }
         public int TimeUnitsLeft { get; set; }
+        public bool FightIsOver { get; set; }
 
         public RoundState()
         {
             TimeUnitsLeft = 50;
+            FightIsOver = false;
         }
     }
 }

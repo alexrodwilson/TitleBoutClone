@@ -11,10 +11,11 @@ namespace TitleBoutClone.Core
     public class FightEngine
     {
         private BoxingRandom _boxRandom = new BoxingRandom();
-        private bool isStopped = false;
+     
         private BoutState _boutState = new BoutState();
         private Fighter _redCorner;
         private Fighter _blueCorner;
+        private const int LastPunchValue = 78;
 
         public FightEngine(Fighter redCorner, Fighter blueCorner)
         {
@@ -30,7 +31,7 @@ namespace TitleBoutClone.Core
             (Fighter leading, Fighter reacting) = DetermineAggressor(_redCorner, _blueCorner);
             System.Console.WriteLine($"{_redCorner.Surname} is set out as a {_redCorner.CurrentStyle} this round, while {_blueCorner.Surname} is being a {_blueCorner.CurrentStyle}.");
             System.Console.WriteLine($"{_redCorner.Surname} has a CF of {_redCorner.CurrentControl} and {_blueCorner.Surname} one of {_blueCorner.CurrentControl}.");
-            while(roundState.TimeUnitsLeft > 0 && ! isStopped)
+            while(roundState.TimeUnitsLeft > 0 && ! roundState.FightIsOver)
             {
                 SimulateAction(leading, reacting, roundState);
                 (leading, reacting) = DetermineControl(leading, reacting, roundState);  
@@ -78,9 +79,17 @@ namespace TitleBoutClone.Core
             if(action is PunchLanded)
             {
                 var punchLanded = (PunchLanded)action;
-                RegisterPunch(leading, reacting, punchLanded, roundState);
-                System.Console.WriteLine($"{leading.Surname} lands a {punchLanded.Value}-point {punchLanded.Type} to {reacting.Surname}.");
-                
+                if (_boxRandom.DieOf(80) <= leading.KnockdownChance)
+                {
+                    SimulateHeavyShot(leading, reacting, roundState);
+                }
+                else
+                {
+                    
+                    RegisterPunch(leading, reacting, punchLanded, roundState);
+                    System.Console.WriteLine($"{leading.Surname} lands a {punchLanded.Value}-point {punchLanded.Type} to {reacting.Surname}.");
+                }
+
             }
             else if (action is PunchMissed)
             {
@@ -107,6 +116,61 @@ namespace TitleBoutClone.Core
             }
 
         }
+        private int EndOfJabs(IDictionary<PunchType, (Range, Range)>hitTable)
+        {
+            var ranges = (new Range(1, 1), new Range(1, 1));
+            hitTable.TryGetValue(PunchType.Jab, out ranges );
+            return Math.Max(ranges.Item1.End, ranges.Item2.End) + 1;
+        }
+
+        private void SimulateHeavyShot(Fighter leading, Fighter reacting, RoundState roundState)
+        {
+            int rn = _boxRandom.DieOf(20);
+            int chanceOfK = reacting.Chin;
+            int chanceOf5 = reacting.Chin + 4;
+            int randomPunchN = _boxRandom.NInRange(EndOfJabs(leading.HittingValuesTable), LastPunchValue);
+            (PunchType punchType, _) = GetPunchTypeAndValue(randomPunchN,
+                leading.HeavyShotsTable);
+            if(rn <= chanceOfK)
+            {
+                roundState.TimeUnitsLeft--;
+                System.Console.WriteLine($"Down goes {reacting.Surname}. {leading.Surname} with a heavy {punchType}");
+                RegisterPunch(leading, reacting, new PunchLanded(punchType, 6), roundState);
+                SimulateKnockdown(leading, reacting, roundState);
+            }
+            else if(rn <= chanceOf5)
+            {
+                RegisterPunch(leading, reacting, new PunchLanded(punchType, 5), roundState);
+                System.Console.WriteLine($"{reacting.Surname} has been shaken to his boots by a {punchType} from {leading.Surname}.");
+            }
+            else
+            {
+                RegisterPunch(leading, reacting, new PunchLanded(punchType, 4), roundState);
+                System.Console.WriteLine($"{leading.Surname} lands a heavy {punchType}.");
+            }
+        }
+
+        private void SimulateKnockdown(Fighter leading, Fighter reacting, RoundState roundState)
+        {
+            roundState.TimeUnitsLeft--;
+            int rn = _boxRandom.DieOf(20);
+            int chanceOfKnockout = reacting.Recovery;
+            int chanceOf5 = reacting.Chin + 4;
+            (PunchType punchType, _) = GetPunchTypeAndValue(_boxRandom.NInRange(EndOfJabs(leading.HittingValuesTable), LastPunchValue),
+                leading.HeavyShotsTable);
+            if (rn <= chanceOfKnockout)
+            {
+                roundState.FightIsOver = true;
+                System.Console.WriteLine($"That's it! The fight is over! {reacting.Surname} won't get up from that. {leading.Surname} is victorious.");
+            }
+            else
+            {
+                roundState.TimeUnitsLeft--;
+                System.Console.WriteLine($"{reacting.Surname} rises on shaky legs.");
+            }
+        }
+
+
 
         private void RegisterPunch(Fighter puncher, Fighter punchee, PunchLanded punch, RoundState roundState)
         {

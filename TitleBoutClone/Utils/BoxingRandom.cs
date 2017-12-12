@@ -21,5 +21,10 @@ namespace TitleBoutClone.Utils
         {
             return _random.Next(2) == 0;
         }
+
+        internal int NInRange(int start, int end)
+        {
+            return _random.Next(start, end + 1);
+        }
     }
 }
