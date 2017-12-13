@@ -17,6 +17,7 @@ namespace TitleBoutClone.Core
         public int? CurrentControl{get;set;}
         public int ControlAgainstB { get; }
         public int ControlAgainstS { get; }
+        public int Power { get; set; }
         public int Aggression { get; set; }
         public int Chin { get; set; }
         public int CurrentChin { get; set; }
@@ -35,7 +36,7 @@ namespace TitleBoutClone.Core
         public int Predictability { get; }
         public (int PointsScoredCurrentRound, int MissedPunches, bool Fatigued, IEnumerable<int> TimesLeftKnockedDownLastRound) Info;
 
-        public Fighter(int id, string surname, int controlAgainstS, int controlAgainstB, int aggression, 
+        public Fighter(int id, string surname, int power, int controlAgainstS, int controlAgainstB, int aggression, 
             int endurance, int defence, int counterpunching, int finishing, int openToCounterpunch, int recovery,int chin, int knockdownChance, Style currentStyle, Range punchLandedRange,
             Range punchMissedRange, Range clinchingRange, Range movementRange, 
             IDictionary<PunchType, (Range, Range)> hittingValuesTable)
@@ -61,6 +62,7 @@ namespace TitleBoutClone.Core
             CurrentStyle = currentStyle;
             HeavyShotsTable = HittingValuesTable.Where(kvp => kvp.Key != PunchType.Jab).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
             Finishing = finishing;
+            Power = power;
             Info = (0, 0, false, new List<int>());
         }
 

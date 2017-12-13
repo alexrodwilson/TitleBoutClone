@@ -92,27 +92,30 @@ namespace TitleBoutClone.Core
 
         public void SimulateFight()
         {
-            while(_fightInfo.CurrentRound < 15 && ! _fightInfo.FightIsOver)
+            (int redConvertedControl, int blueConvertedControl) = ConvertControl(_redCorner, _blueCorner);
+            _redCorner.CurrentControl = redConvertedControl;
+            _blueCorner.CurrentControl = blueConvertedControl;
+            while (_fightInfo.CurrentRound <= 15 && ! _fightInfo.FightIsOver)
             {
                 SimulateRound();
                 SimulateInterval();
                 System.Console.ReadLine();
             }
+            System.Console.ReadLine();
         }
         public void SimulateRound()
         {
             System.Console.WriteLine($"This is the {_fightInfo.CurrentRound}th round");
-            FightInfo roundState = new FightInfo();
-            (int redConvertedControl, int blueConvertedControl) = ConvertControl(_redCorner, _blueCorner);
-            _redCorner.CurrentControl = redConvertedControl;
-            _blueCorner.CurrentControl = blueConvertedControl;
+            System.Console.WriteLine($"{_redCorner.Surname} Endurance has {_redCorner.Endurance}, {_blueCorner.Surname} has {_blueCorner.Endurance}, ");
+
             (Fighter leading, Fighter reacting) = DetermineAggressor(_redCorner, _blueCorner);
             System.Console.WriteLine($"{_redCorner.Surname} is set out as a {_redCorner.CurrentStyle} this round, while {_blueCorner.Surname} is being a {_blueCorner.CurrentStyle}.");
             System.Console.WriteLine($"{_redCorner.Surname} has a CF of {_redCorner.CurrentControl} and {_blueCorner.Surname} one of {_blueCorner.CurrentControl}.");
-            while(roundState.TimeUnitsLeft > 0 && ! roundState.FightIsOver)
+            while(_fightInfo.TimeUnitsLeft > 0 )
             {
-                SimulateAction(leading, reacting, roundState);
-                (leading, reacting) = DetermineControl(leading, reacting, roundState);  
+                SimulateAction(leading, reacting, _fightInfo);
+                if (_fightInfo.FightIsOver) return;
+                (leading, reacting) = DetermineControl(leading, reacting, _fightInfo);  
             }
             System.Console.WriteLine($"The round ends with {_redCorner.Surname} on {_redCorner.Info.PointsScoredCurrentRound} points and {_blueCorner.Surname} on {_blueCorner.Info.PointsScoredCurrentRound} points.");
             System.Console.WriteLine();
@@ -149,22 +152,23 @@ namespace TitleBoutClone.Core
             }
         }
 
-        private void SimulateAction(Fighter leading, Fighter reacting, FightInfo roundState)
+        private void SimulateAction(Fighter leading, Fighter reacting, FightInfo fightInfo)
         {
-            roundState.TimeUnitsLeft--;
+            fightInfo.TimeUnitsLeft--;
             int RN = _boxRandom.DieOf(80);
             IAction action = GetFighterAction(leading, reacting, RN);
             if(action is PunchLanded)
             {
                 var punchLanded = (PunchLanded)action;
-                if (_boxRandom.DieOf(80) <= leading.KnockdownChance)
+                if (_boxRandom.DieOf(80) <= leading.KnockdownChance && _boxRandom.DieOf(20) <= leading.Power)
                 {
-                    SimulateHeavyShot(leading, reacting, roundState);
+                    fightInfo.TimeUnitsLeft--;
+                    SimulateHeavyShot(leading, reacting, fightInfo);
                 }
                 else
                 {
                     
-                    RegisterPunch(leading, reacting, punchLanded, roundState);
+                    RegisterPunch(leading, reacting, punchLanded, fightInfo);
                     System.Console.WriteLine($"{leading.Surname} lands a {punchLanded.Value}-point {punchLanded.Type} to {reacting.Surname}.");
                 }
 
@@ -174,10 +178,19 @@ namespace TitleBoutClone.Core
                 int newRandom = _boxRandom.DieOf(80);
                 if ( newRandom <= (leading.Predictability + reacting.Counterpunching))
                 {
-                    (var type, var value) = GetPunchTypeAndValue(_boxRandom.DieOf(80), reacting.HittingValuesTable);
-                    roundState.TimeUnitsLeft--;
-                    RegisterPunch(reacting, leading, new PunchLanded(type, value),roundState);
-                    System.Console.WriteLine($"{reacting.Surname} lands a beautiful {value}-point {type} counterpunch.");
+                    if (_boxRandom.DieOf(80) <= leading.KnockdownChance && _boxRandom.DieOf(20) <= leading.Power)
+                    {
+                        fightInfo.TimeUnitsLeft--;
+                        SimulateHeavyShot(leading, reacting, fightInfo);
+                    }
+                    else
+                    {
+                        (var type, var value) = GetPunchTypeAndValue(_boxRandom.DieOf(80), reacting.HittingValuesTable);
+                        fightInfo.TimeUnitsLeft--;
+                        RegisterPunch(reacting, leading, new PunchLanded(type, value), fightInfo);
+                        System.Console.WriteLine($"{reacting.Surname} lands a beautiful {value}-point {type} counterpunch.");
+                    }
+
                 }
                 else
                 {
@@ -245,6 +258,11 @@ namespace TitleBoutClone.Core
             else
             {
                 roundState.TimeUnitsLeft--;
+                int count = _boxRandom.DieOf(9);
+                for(int i = 1;  i<= count; i++)
+                {
+                    System.Console.WriteLine(i);
+                }
                 System.Console.WriteLine($"{punchee.Surname} rises on shaky legs.");
                 punchee.CurrentChin = punchee.Chin + punchee.Recovery;
                 SimulateKillerInstinct(puncher, punchee, roundState);
