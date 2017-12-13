@@ -19,6 +19,7 @@ namespace TitleBoutClone.Core
         public int ControlAgainstS { get; }
         public int Aggression { get; set; }
         public int Chin { get; set; }
+        public int CurrentChin { get; set; }
         public int Finishing { get; set; }
         public int Endurance { get; set; }
         public int Defence { get; set; }
@@ -31,10 +32,11 @@ namespace TitleBoutClone.Core
         public IDictionary<PunchType, (Range, Range)> HeavyShotsTable { get; }
         public IDictionary<PunchType, (Range, Range)>  HittingValuesTable { get;}
         public int Counterpunching { get; }
-        public int OpenToCounterpunch { get; }
+        public int Predictability { get; }
+        public (int PointsScoredCurrentRound, int MissedPunches, bool Fatigued, IEnumerable<int> TimesLeftKnockedDownLastRound) Info;
 
         public Fighter(int id, string surname, int controlAgainstS, int controlAgainstB, int aggression, 
-            int endurance, int defence, int counterpunching, int openToCounterpunch, int recovery,int chin, int knockdownChance, Style currentStyle, Range punchLandedRange,
+            int endurance, int defence, int counterpunching, int finishing, int openToCounterpunch, int recovery,int chin, int knockdownChance, Style currentStyle, Range punchLandedRange,
             Range punchMissedRange, Range clinchingRange, Range movementRange, 
             IDictionary<PunchType, (Range, Range)> hittingValuesTable)
         {
@@ -45,6 +47,7 @@ namespace TitleBoutClone.Core
             Aggression = aggression;
             Endurance = endurance;
             Chin = chin;
+            CurrentChin = Chin;
             Recovery = recovery;
             Defence = defence;
             KnockdownChance = knockdownChance;
@@ -53,10 +56,12 @@ namespace TitleBoutClone.Core
             ClinchingRange = clinchingRange;
             MovementRange = movementRange;
             HittingValuesTable = hittingValuesTable;
-            OpenToCounterpunch = openToCounterpunch;
+            Predictability = openToCounterpunch;
             Counterpunching = counterpunching;
             CurrentStyle = currentStyle;
             HeavyShotsTable = HittingValuesTable.Where(kvp => kvp.Key != PunchType.Jab).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            Finishing = finishing;
+            Info = (0, 0, false, new List<int>());
         }
 
         public override bool Equals(Object otherFighter)

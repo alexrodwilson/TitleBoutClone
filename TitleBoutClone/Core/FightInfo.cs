@@ -6,17 +6,21 @@ using System.Threading.Tasks;
 
 namespace TitleBoutClone.Core
 {
-    public class RoundState
+    public class FightInfo
     {
-        public int PointsScoredRed { get; set; }
-        public int PointsScoredBlue { get; set; }
+
         public int TimeUnitsLeft { get; set; }
         public bool FightIsOver { get; set; }
+        public Fighter LastRoundWinner { get; set; }
+        public int CurrentRound { get; set; }
 
-        public RoundState()
+
+        public FightInfo()
         {
             TimeUnitsLeft = 50;
             FightIsOver = false;
+            LastRoundWinner = null;
+            CurrentRound = 1;
         }
     }
 }
