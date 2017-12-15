@@ -29,15 +29,58 @@ namespace TitleBoutClone.Core
             _fightInfo = new FightInfo();
         }
 
+        private void WriteLastRoundScore((int redPoints, int bluePoints) lastRoundScore)
+        {
+            if (lastRoundScore.redPoints > lastRoundScore.bluePoints) System.Console.WriteLine($"{_redCorner.Surname} won the last round {lastRoundScore.redPoints} to {lastRoundScore.bluePoints}");
+            else if (lastRoundScore.bluePoints > lastRoundScore.redPoints) System.Console.WriteLine($"{_blueCorner.Surname} won the last round {lastRoundScore.bluePoints} to {lastRoundScore.redPoints}");
+            else System.Console.WriteLine($"The last round was drawn {lastRoundScore.redPoints} {lastRoundScore.bluePoints}");
+        }
         private void SimulateInterval()
         {
             AdjustEndurance();
             AdjustChin();
-            PrepareInfoForNextRound();
+            (int redPoints, int bluePoints) lastRoundScore = ScoreLastRound();
+            WriteLastRoundScore(lastRoundScore);
+            PrepareInfoForNextRound(lastRoundScore);
+           
         }
 
-        private void PrepareInfoForNextRound()
+        private (int redPoints, int bluePoints) ScoreLastRound()
         {
+            int movedVersusClinchedRed = (_redCorner.Info.TimesMoved > _redCorner.Info.TimesClinched) ? 1 : -1;
+            int movedVersusClinchedBlue = (_blueCorner.Info.TimesMoved > _blueCorner.Info.TimesClinched) ? 1 : -1;
+            int redScore = _redCorner.Info.PointsScoredCurrentRound + _blueCorner.Info.MissedPunches + movedVersusClinchedRed;
+            int blueScore = _blueCorner.Info.PointsScoredCurrentRound + _redCorner.Info.MissedPunches + movedVersusClinchedBlue;
+            int timesBlueKd = _blueCorner.Info.TimesLeftKnockedDownLastRound.Count();
+            int timesRedKd = _redCorner.Info.TimesLeftKnockedDownLastRound.Count();
+            //System.Console.WriteLine($"{_redCorner.Surname} was knocked down {timesRedKd} times last round, {_blueCorner.Surname} was knocked down {timesBlueKd} times.");
+            int numberOfKnockdowns = timesBlueKd + timesRedKd;
+            if (numberOfKnockdowns == 0 || timesBlueKd == timesRedKd)
+            {
+                if (redScore > blueScore) return (10, 9);
+                else if (blueScore > redScore) return (9, 10);
+                else return (10, 10);
+            }
+            else
+            {
+                (int redPoints, int bluePoints) prelimScore = (timesBlueKd > timesRedKd) ? (10, 10 - (timesBlueKd + 1)) : (10 - (timesRedKd + 1), 10);
+                int difference = Math.Abs(redScore - blueScore);
+                if (difference < 20 ) return prelimScore;
+                else
+                {
+                    if (redScore > blueScore && timesBlueKd > timesRedKd) return prelimScore;
+                    else if (blueScore > redScore && timesRedKd > timesBlueKd) return prelimScore;
+                    else if (redScore > blueScore) return (prelimScore.redPoints + 1, prelimScore.bluePoints);
+                    else return (prelimScore.redPoints, prelimScore.bluePoints + 1);
+                }
+
+            }
+
+        }
+
+        private void PrepareInfoForNextRound((int redPoints, int bluePoints) lastRoundScore)
+        {
+            _fightInfo.Scores.Add(lastRoundScore);
             if(_redCorner.Info.PointsScoredCurrentRound == _blueCorner.Info.PointsScoredCurrentRound)
             {
                 _fightInfo.LastRoundWinner = null;
@@ -51,6 +94,8 @@ namespace TitleBoutClone.Core
             _fightInfo.TimeUnitsLeft = TimeUnitsInRound;
             foreach(var fighter in _fighters)
             {
+                fighter.Info.TimesClinched = 0;
+                fighter.Info.TimesMoved = 0;
                 fighter.Info.PointsScoredCurrentRound = 0;
                 fighter.Info.MissedPunches = 0;
                 fighter.Info.TimesLeftKnockedDownLastRound = new List<int>();
@@ -105,7 +150,24 @@ namespace TitleBoutClone.Core
                 SimulateInterval();
                 System.Console.ReadLine();
             }
+            WriteFinalScores(_fightInfo.Scores, _redCorner, _blueCorner);
             System.Console.ReadLine();
+        }
+        private void WriteFinalScores(List<(int,int)> scores, Fighter redCorner, Fighter blueCorner)
+        {
+            int redTotal = scores.Select(score => score.Item1).Sum();
+            int blueTotal = scores.Select(score => score.Item2).Sum();
+            if (redTotal == blueTotal)
+            {
+                System.Console.WriteLine($"The scores are tied at scores of {blueTotal}, ladies and gentleman. The result is a draw.");
+                return;
+            }
+            else
+            {
+                string winner = (redTotal > blueTotal) ? redCorner.Surname : blueCorner.Surname;
+                System.Console.WriteLine($"Ladies and gentleman, your winner by a score of {Math.Max(redTotal, blueTotal)} to {Math.Min(redTotal, blueTotal)}, is the winner {winner}.");
+            }
+            
         }
 
         private (int redEndurance, int blueEndurance)AdjustEnduranceForFightLength(int rounds, Fighter redCorner, Fighter blueCorner)
@@ -128,7 +190,7 @@ namespace TitleBoutClone.Core
                 if (_fightInfo.FightIsOver) return;
                 (leading, reacting) = DetermineControl(leading, reacting, _fightInfo);  
             }
-            System.Console.WriteLine($"The round ends with {_redCorner.Surname} on {_redCorner.Info.PointsScoredCurrentRound} points and {_blueCorner.Surname} on {_blueCorner.Info.PointsScoredCurrentRound} points.");
+            System.Console.WriteLine($"The round ends with {_redCorner.Surname} scoring {_redCorner.Info.PointsScoredCurrentRound} points and {_blueCorner.Surname} on {_blueCorner.Info.PointsScoredCurrentRound} points.");
             System.Console.WriteLine();
         }
         
@@ -205,15 +267,18 @@ namespace TitleBoutClone.Core
                 }
                 else
                 {
+                    leading.Info.MissedPunches++;
                     System.Console.WriteLine($"{leading.Surname} misses a punch.");
                 }
             }
             else if (action is Clinching)
             {
+                leading.Info.TimesClinched++;
                 System.Console.WriteLine($"{leading.Surname} holds on.");
             }
             else if(action is Movement)
             {
+                leading.Info.TimesMoved++;
                 System.Console.WriteLine($"{leading.Surname} moves around the ring.");
             }
 
@@ -258,6 +323,7 @@ namespace TitleBoutClone.Core
             roundState.TimeUnitsLeft--;
             int rn = _boxRandom.DieOf(20);
             int chanceOfKnockout = punchee.Recovery;
+            punchee.Info.TimesLeftKnockedDownLastRound.Add(roundState.TimeUnitsLeft);
             //int chanceOf5 = reacting.Chin + 4;
             (PunchType punchType, _) = GetPunchTypeAndValue(_boxRandom.NInRange(EndOfJabs(puncher.HittingValuesTable), LastPunchValue),
                 puncher.HeavyShotsTable);

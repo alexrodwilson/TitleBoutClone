@@ -13,6 +13,7 @@ namespace TitleBoutClone.Core
         public bool FightIsOver { get; set; }
         public Fighter LastRoundWinner { get; set; }
         public int CurrentRound { get; set; }
+        public List<(int, int)> Scores { get; set; }
 
 
         public FightInfo()
@@ -21,6 +22,7 @@ namespace TitleBoutClone.Core
             FightIsOver = false;
             LastRoundWinner = null;
             CurrentRound = 1;
+            Scores = new List<(int, int)>();
         }
     }
 }
