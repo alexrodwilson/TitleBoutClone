@@ -38,11 +38,11 @@ namespace TitleBoutClone.Core
         private void SimulateInterval()
         {
             AdjustEndurance();
-            AdjustChin();
             (int redPoints, int bluePoints) lastRoundScore = ScoreLastRound();
             WriteLastRoundScore(lastRoundScore);
+            AdjustChin();
             PrepareInfoForNextRound(lastRoundScore);
-           
+
         }
 
         private (int redPoints, int bluePoints) ScoreLastRound()
@@ -180,6 +180,8 @@ namespace TitleBoutClone.Core
         {
             System.Console.WriteLine($"This is the {_fightInfo.CurrentRound}th round");
             System.Console.WriteLine($"{_redCorner.Surname} Endurance has {_redCorner.Endurance}, {_blueCorner.Surname} has {_blueCorner.Endurance}, ");
+            System.Console.WriteLine($"{_redCorner.Surname} Chin is {_redCorner.CurrentChin}, {_blueCorner.Surname} has {_blueCorner.CurrentChin}, ");
+
 
             (Fighter leading, Fighter reacting) = DetermineAggressor(_redCorner, _blueCorner);
             System.Console.WriteLine($"{_redCorner.Surname} is set out as a {_redCorner.CurrentStyle} this round, while {_blueCorner.Surname} is being a {_blueCorner.CurrentStyle}.");
