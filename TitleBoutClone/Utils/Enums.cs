@@ -8,4 +8,7 @@ namespace TitleBoutClone.Utils
 {
     public enum PunchType { Jab, Hook, Cross, Combination, Uppercut}
     public enum Style { Boxer, Slugger, Either }
+    public enum CutLocation { AboveTheLeftEye, BeneathTheLeftEye, AboveTheRightEye,
+        BeneathTheRightEye, OnTheNose, OnTheForehead, AboveTheHairLine}
+    public enum Severity { Light, Medium, Severe}
 }

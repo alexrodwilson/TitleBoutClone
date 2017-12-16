@@ -50,6 +50,7 @@
     <Compile Include="Actions\Movement.cs" />
     <Compile Include="Actions\PunchLanded.cs" />
     <Compile Include="Actions\PunchMissed.cs" />
+    <Compile Include="Core\Cut.cs" />
     <Compile Include="Core\FightEngine.cs" />
     <Compile Include="Core\Fighter.cs" />
     <Compile Include="Core\FightInfo.cs" />

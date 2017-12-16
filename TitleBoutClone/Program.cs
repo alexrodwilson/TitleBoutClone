@@ -31,8 +31,8 @@ namespace TitleBoutClone
                 punchMissedRange: new Range(41, 50), clinchingRange: new Range(51, 70),
                 movementRange: new Range(71, 80), hittingValuesTable: hitTable1);
 
-            Fighter foreman = new Fighter(id: 2, surname: "Foreman", controlAgainstB: 11, controlAgainstS: 12,
-                aggression: 8, power: 12, endurance: 78, defence: 2, knockdownChance: 16, chin: 1, finishing: 7, recovery: 5, counterpunching: 4, openToCounterpunch: 42, punchLandedRange: new Range(1, 37),
+            Fighter foreman = new Fighter(id: 2, surname: "Foreman", controlAgainstB: 9, controlAgainstS: 11,
+                aggression: 8, power: 12, endurance: 78, defence: 2, knockdownChance: 16, chin: 2, finishing: 7, recovery: 3, counterpunching: 4, openToCounterpunch: 42, punchLandedRange: new Range(1, 37),
                 punchMissedRange: new Range(38, 50), clinchingRange: new Range(51, 70), currentStyle: Style.Slugger,
                 movementRange: new Range(71, 80), hittingValuesTable: hitTable1);
 

@@ -34,7 +34,7 @@ namespace TitleBoutClone.Core
         public IDictionary<PunchType, (Range, Range)>  HittingValuesTable { get;}
         public int Counterpunching { get; }
         public int Predictability { get; }
-        public (int PointsScoredCurrentRound, int MissedPunches, int TimesMoved, int TimesClinched, bool Fatigued, List<int> TimesLeftKnockedDownLastRound) Info;
+        public (int PointsScoredCurrentRound, int MissedPunches, int TimesMoved, int TimesClinched, bool Fatigued, List<int> TimesLeftKnockedDownLastRound, List<Cut>Cuts) Info;
 
         public Fighter(int id, string surname, int power, int controlAgainstS, int controlAgainstB, int aggression, 
             int endurance, int defence, int counterpunching, int finishing, int openToCounterpunch, int recovery,int chin, int knockdownChance, Style currentStyle, Range punchLandedRange,
@@ -63,7 +63,7 @@ namespace TitleBoutClone.Core
             HeavyShotsTable = HittingValuesTable.Where(kvp => kvp.Key != PunchType.Jab).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
             Finishing = finishing;
             Power = power;
-            Info = (0, 0, 0, 0, false, new List<int>());
+            Info = (0, 0, 0, 0, false, new List<int>(), new List<Cut>());
         }
 
         public override bool Equals(Object otherFighter)

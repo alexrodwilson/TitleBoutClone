@@ -20,6 +20,8 @@ namespace TitleBoutClone.Core
         private const int LastPunchValue = 78;
         private const int TimeUnitsInRound = 50;
         private const int Rounds = 15;
+        private const int CutFromPunchChance = 2;
+        private const int CutFromMissedPunchChance = 4;
 
         public FightEngine(Fighter redCorner, Fighter blueCorner)
         {
@@ -150,7 +152,7 @@ namespace TitleBoutClone.Core
                 SimulateInterval();
                 System.Console.ReadLine();
             }
-            WriteFinalScores(_fightInfo.Scores, _redCorner, _blueCorner);
+            if (!_fightInfo.FightIsOver)WriteFinalScores(_fightInfo.Scores, _redCorner, _blueCorner);
             System.Console.ReadLine();
         }
         private void WriteFinalScores(List<(int,int)> scores, Fighter redCorner, Fighter blueCorner)
@@ -229,16 +231,22 @@ namespace TitleBoutClone.Core
 
         private void SimulateAction(Fighter leading, Fighter reacting)
         {
+            bool cutFromPunch = false;
             _fightInfo.TimeUnitsLeft--;
             int RN = _boxRandom.DieOf(80);
             IAction action = GetFighterAction(leading, reacting, RN);
             if(action is PunchLanded)
             {
+                if(_boxRandom.DieOf(100) < CutFromPunchChance)
+                {
+                    cutFromPunch = true;
+                }
                 var punchLanded = (PunchLanded)action;
                 if (_boxRandom.DieOf(80) <= leading.KnockdownChance && _boxRandom.DieOf(20) <= leading.Power)
                 {
                     _fightInfo.TimeUnitsLeft--;
                     SimulateHeavyShot(leading, reacting, _fightInfo);
+
                 }
                 else
                 {
@@ -246,10 +254,21 @@ namespace TitleBoutClone.Core
                     RegisterPunch(leading, reacting, punchLanded, _fightInfo);
                     System.Console.WriteLine($"{leading.Surname} lands a {punchLanded.Value}-point {punchLanded.Type} to {reacting.Surname}.");
                 }
+                if (cutFromPunch)
+                {
+                    var cut = Cut.GetCut(reacting);
+                    reacting.Info.Cuts.Add(cut);
+                    System.Console.WriteLine($"It looks like {reacting.Surname} is bleeding from that last punch. It looks like a {cut.Description}.");
+                }
 
             }
             else if (action is PunchMissed)
             {
+                bool cutFromHeadClash = false;
+                if (_boxRandom.DieOf(100) <= CutFromMissedPunchChance)
+                {
+                    cutFromHeadClash = true;
+                }
                 int newRandom = _boxRandom.DieOf(80);
                 if ( newRandom <= (leading.Predictability + reacting.Counterpunching))
                 {
@@ -271,6 +290,13 @@ namespace TitleBoutClone.Core
                 {
                     leading.Info.MissedPunches++;
                     System.Console.WriteLine($"{leading.Surname} misses a punch.");
+                    if (cutFromHeadClash)
+                    {
+                        Cut cut = Cut.GetCut(reacting);
+                        Fighter victim = (_boxRandom.CoinLandsHeads()) ? leading : reacting;
+                        victim.Info.Cuts.Add(cut);
+                        System.Console.WriteLine($"It looks like {victim.Surname} is bleeding from a head clash. It looks like a {cut.Description}.");
+                    }
                 }
             }
             else if (action is Clinching)
